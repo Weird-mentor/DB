@@ -1,0 +1,317 @@
+create database CarRental;
+
+
+1) Vehicle Table:
+
+create table vehicle_table(
+    -> vehicle_id int PRIMARY KEY,
+    -> make varchar(30),
+    -> model varchar(30),
+    -> year int,
+    -> daily_rate DECIMAL(8,2),
+    -> status int,
+    -> passenger_cap int,
+    -> engine_cap int
+    -> );
+Query OK, 0 rows affected (0.18 sec)
+
+2) Customer Table:
+
+ create table customer_table(
+    -> customer_id int PRIMARY KEY,
+    -> fname varchar(30),
+    -> lname varchar(30),
+    -> email varchar(100),
+    -> ph_no varchar(15)
+    -> );
+Query OK, 0 rows affected (0.06 sec)
+
+3) Lease Table:
+
+create table lease_table(
+    -> lease_id int PRIMARY KEY,
+    -> vehicle_id int,
+    -> FOREIGN KEY (vehicle_id) REFERENCES vehicle_table(vehicle_id),
+    -> customer_id int,
+    -> FOREIGN KEY (customer_id) REFERENCES customer_table(customer_id),
+    -> start_date date,
+    -> end_date date,
+    -> type varchar(20)
+    -> );
+Query OK, 0 rows affected (0.15 sec)
+
+4) Payment Table
+
+create table payment_table(
+    -> payment_id int PRIMARY KEY,
+    -> lease_id int,
+    -> FOREIGN KEY(lease_id) REFERENCES lease_table(lease_id),
+    -> amount DECIMAL(8,2)
+    -> );
+Query OK, 0 rows affected (0.12 sec)
+
+
+INSRTIONS:
+
+1) vehicle table :
+
+insert into vehicle_table VALUES(1,'TOYOTA','CAMRY',2022,50.00,1,4,1450);
+Query OK, 1 row affected (0.03 sec)
+
+2) Customer table :
+
+ insert into customer_table VALUES(1,'JOHN','DOE','JOHNDOE@EXAMPLE.COM','555-555-5555');
+Query OK, 1 row affected (0.02 sec)
+
+3) lease table :
+
+ insert into lease_table values(1,1,1,'2023-01-01','2023-01-05','Daily');
+Query OK, 1 row affected (0.02 sec)
+
+4) payment table :
+
+insert into payment_table values(1,1,'2023-01-03',200.00);
+
+
+
+
+QUESTIONS :
+
+1) Update the daily rate for a Mercedes car to 68
+
+ update vehicle_table set daily_rate = 68.00 where make="MERCEDES";
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+
+2) Delete a specific customer and all associated leases and payments 
+
+delete customer_table from customer_table c join lease_table l on c.customer_id = l.customer_id where c.fname = "Jane"; 
+
+
+
+3) Rename the "paymentDate" column in the Payment table to "transactionDate".
+
+alter table payment_table rename column payment_date to transaction_date;
+Query OK, 0 rows affected (0.06 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+
+4)  Find a specific customer by email.
+
+select * from customer_table where email = "robert@example.com";
+
++-------------+--------+---------+--------------------+--------------+
+| customer_id | fname  | lname   | email              | ph_no        |
++-------------+--------+---------+--------------------+--------------+
+|           3 | ROBERT | JOHNSON | robert@example.com | 444-666-7777 |
++-------------+--------+---------+--------------------+--------------+
+1 row in set (0.00 sec)
+
+
+5)Get active leases for a specific customer .
+
+select * from customer_table c right  join lease_table l ON c.customer_id = l.customer_id where fname = "DAVID";
++-------------+-------+-------+-------------------+--------------+----------+------------+-------------+------------+------------+-------+
+| customer_id | fname | lname | email             | ph_no        | lease_id | vehicle_id | customer_id | start_date | end_date   | type  |
++-------------+-------+-------+-------------------+--------------+----------+------------+-------------+------------+------------+-------+
+|           5 | DAVID | LEE   | david@example.com | 232-999-3555 |        5 |          5 |           5 | 2023-05-05 | 2023-05-10 | DAILY |
++-------------+-------+-------+-------------------+--------------+----------+------------+-------------+------------+------------+-------+
+1 row in set (0.00 sec)
+
+
+6) Find all payments made by a customer with a specific phone number
+
+select c.fname,c.lname,p.amount from customer_table c inner join payment_table p on p.payment_id = c.customer_id where c.ph_no = "555-555-5555";
++-------+-------+--------+
+| fname | lname | amount |
++-------+-------+--------+
+| JOHN  | DOE   | 200.00 |
++-------+-------+--------+
+1 row in set (0.00 sec)
+
+
+7) Calculate the average daily rate of all available cars
+
+select avg(daily_rate) as average from vehicle_table where status=1;
+
++-----------+
+| average   |
++-----------+
+| 53.666667 |
++-----------+
+1 row in set (0.00 sec)
+
+
+8) Find the car with the highest daily rate.
+
+
+select make,max(daily_rate) as MAXIMUM from vehicle_table group by make;
+
++-----------+-----------------+
+| make      | MAXIMUM         |
++-----------+-----------------+
+| TOYOTA    |           50.00 |
+| HONDA     |           45.00 |
+| FORD      |           48.00 |
+| NISSAN    |           52.00 |
+| CHEVROLET |           47.00 |
+| BMW       |           60.00 |
+| MERCEDES  |           68.00 |
++-----------+-----------------+
+7 rows in set (0.00 sec)
+
+
+9)  Retrieve all cars leased by a specific customer.
+
+select v.make,v.model,v.year,c.fname,c.lname,l.start_date,l.end_date,l.type from vehicle_table v left join lease_table l on l.vehicle_id = v.vehicle_id left join customer_table c on c.customer_id = l.customer_id where c.fname = "ROBERT";
++--------+--------+------+--------+---------+------------+------------+---------+
+| make   | model  | year | fname  | lname   | start_date | end_date   | type    |
++--------+--------+------+--------+---------+------------+------------+---------+
+| FORD   | FOCUS  | 2022 | ROBERT | JOHNSON | 2023-03-10 | 2023-03-15 | DAILY   |
+| NISSAN | ALTIMA | 2023 | ROBERT | JOHNSON | 2023-06-15 | 2023-06-30 | MONTHLY |
++--------+--------+------+--------+---------+------------+------------+---------+
+2 rows in set (0.00 sec)
+
+
+
+10) . Find the details of the most recent lease.
+
+select * from lease_table where start_date = (select max(start_Date) from lease_table);
++----------+------------+-------------+------------+------------+---------+
+| lease_id | vehicle_id | customer_id | start_date | end_date   | type    |
++----------+------------+-------------+------------+------------+---------+
+|        6 |          4 |           3 | 2023-06-15 | 2023-06-30 | MONTHLY |
++----------+------------+-------------+------------+------------+---------+
+
+
+11) List all payments made in the year 2023.
+
+select payment_id,amount from payment_table where YEAR(transaction_date) = 2023;
++------------+---------+
+| payment_id | amount  |
++------------+---------+
+|          1 |  200.00 |
+|          2 | 1000.00 |
+|          3 |   75.00 |
+|          4 |  900.00 |
+|          5 |   60.00 |
+|          6 | 1200.00 |
++------------+---------+
+6 rows in set (0.00 sec)
+
+
+12) Retrieve customers who have not made any payments
+
+ select * from customer_table c LEFT JOIN lease_table l on c.customer_id = l.customer_id LEFT JOIN payment_table p on l.customer_id = p.lease_id where l.lease_id is NULL;
++-------------+-------+-------+-------------------+--------------+----------+------------+-------------+------------+----------+------+------------+----------+--------+------------------+
+| customer_id | fname | lname | email             | ph_no        | lease_id | vehicle_id | customer_id | start_date | end_date | type | payment_id | lease_id | amount | transaction_date |
++-------------+-------+-------+-------------------+--------------+----------+------------+-------------+------------+----------+------+------------+----------+--------+------------------+
+|           6 | LAURA | HALL  | laura@example.com | 232-989-3095 |     NULL |       NULL |        NULL | NULL       | NULL     | NULL |       NULL |     NULL |   NULL | NULL             |
++-------------+-------+-------+-------------------+--------------+----------+------------+-------------+------------+----------+------+------------+----------+--------+------------------+
+1 row in set (0.00 sec)
+
+
+13) Retrieve Car Details and Their Total Payments.
+
+select v.make,v.model,v.year,p.amount from vehicle_table v left join lease_table l ON v.vehicle_id = l.vehicle_id left join payment_table p on p.payment_id = l.customer_id;
++-----------+----------+------+---------+
+| make      | model    | year | amount  |
++-----------+----------+------+---------+
+| TOYOTA    | CAMRY    | 2022 |  200.00 |
+| HONDA     | CIVIC    | 2023 | 1000.00 |
+| FORD      | FOCUS    | 2022 |   75.00 |
+| NISSAN    | ALTIMA   | 2023 |  900.00 |
+| NISSAN    | ALTIMA   | 2023 |   75.00 |
+| CHEVROLET | MALIBU   | 2022 |   60.00 |
+| BMW       | 3-SEIRES | 2023 |    NULL |
+| MERCEDES  | C-CLASS  | 2022 |    NULL |
++-----------+----------+------+---------+
+8 rows in set (0.00 sec)
+
+
+14) Calculate Total Payments for Each Customer.
+
+ select c.fname,sum(p.amount) from customer_table c left join lease_table l ON c.customer_id = l.customer_id left join payment_table p on p.payment_id = l.customer_id group by c.fname;
++--------+---------------+
+| fname  | sum(p.amount) |
++--------+---------------+
+| JOHN   |        200.00 |
+| JANE   |       1000.00 |
+| ROBERT |        150.00 |
+| SARAH  |        900.00 |
+| DAVID  |         60.00 |
+| LAURA  |          NULL |
++--------+---------------+
+6 rows in set (0.00 sec)
+
+
+
+15) . List Car Details for Each Lease
+
+select v.make,v.model,v.year,l.start_date,l.end_date,l.type from vehicle_table v right join lease_table l ON v.vehicle_id = l.vehicle_id right join payment_table p on p.payment_id = l.customer_id;
++-----------+--------+------+------------+------------+---------+
+| make      | model  | year | start_date | end_date   | type    |
++-----------+--------+------+------------+------------+---------+
+| TOYOTA    | CAMRY  | 2022 | 2023-01-01 | 2023-01-05 | Daily   |
+| HONDA     | CIVIC  | 2023 | 2023-02-15 | 2023-02-28 | MONTHLY |
+| FORD      | FOCUS  | 2022 | 2023-03-10 | 2023-03-15 | DAILY   |
+| NISSAN    | ALTIMA | 2023 | 2023-06-15 | 2023-06-30 | MONTHLY |
+| NISSAN    | ALTIMA | 2023 | 2023-04-20 | 2023-04-30 | MONTHLY |
+| CHEVROLET | MALIBU | 2022 | 2023-05-05 | 2023-05-10 | DAILY   |
+| NULL      | NULL   | NULL | NULL       | NULL       | NULL    |
++-----------+--------+------+------------+------------+---------+
+7 rows in set (0.00 sec)
+
+
+
+16) Retrieve Details of Active Leases with Customer and Car Information.
+
+select v.make,v.model,v.year,c.fname,c.lname,l.start_date,l.end_date,l.type from vehicle_table v left join lease_table l ON v.vehicle_id = l.vehicle_id left join payment_table p on p.payment_id = l.customer_id left join customer_table c on c.customer_id = l.lease_id;
++-----------+----------+------+--------+---------+------------+------------+---------+
+| make      | model    | year | fname  | lname   | start_date | end_date   | type    |
++-----------+----------+------+--------+---------+------------+------------+---------+
+| TOYOTA    | CAMRY    | 2022 | JOHN   | DOE     | 2023-01-01 | 2023-01-05 | Daily   |
+| HONDA     | CIVIC    | 2023 | JANE   | SMITH   | 2023-02-15 | 2023-02-28 | MONTHLY |
+| FORD      | FOCUS    | 2022 | ROBERT | JOHNSON | 2023-03-10 | 2023-03-15 | DAILY   |
+| NISSAN    | ALTIMA   | 2023 | SARAH  | BROWN   | 2023-04-20 | 2023-04-30 | MONTHLY |
+| NISSAN    | ALTIMA   | 2023 | LAURA  | HALL    | 2023-06-15 | 2023-06-30 | MONTHLY |
+| CHEVROLET | MALIBU   | 2022 | DAVID  | LEE     | 2023-05-05 | 2023-05-10 | DAILY   |
+| BMW       | 3-SEIRES | 2023 | NULL   | NULL    | NULL       | NULL       | NULL    |
+| MERCEDES  | C-CLASS  | 2022 | NULL   | NULL    | NULL       | NULL       | NULL    |
++-----------+----------+------+--------+---------+------------+------------+---------+
+8 rows in set (0.00 sec)
+
+
+
+17) Find the Customer Who Has Spent the Most on Leases. 
+
+select c.fname,SUM(p.amount) from customer_table c left join lease_table l on c.customer_id = l.customer_id left join payment_table p on p.lease_id = l.lease_id group by c.fname having count(c.customer_id)>1;
++--------+---------------+
+| fname  | SUM(p.amount) |
++--------+---------------+
+| ROBERT |       1275.00 |
++--------+---------------+
+1 row in set (0.01 sec)
+
+
+
+18)List All Cars with Their Current Lease Information.
+
+select v.make,v.model,v.year,l.start_date,l.end_date,l.type from vehicle_table v left join lease_table l ON v.vehicle_id = l.vehicle_id left join payment_table p on p.payment_id = l.customer_id;
++-----------+----------+------+------------+------------+---------+
+| make      | model    | year | start_date | end_date   | type    |
++-----------+----------+------+------------+------------+---------+
+| TOYOTA    | CAMRY    | 2022 | 2023-01-01 | 2023-01-05 | Daily   |
+| HONDA     | CIVIC    | 2023 | 2023-02-15 | 2023-02-28 | MONTHLY |
+| FORD      | FOCUS    | 2022 | 2023-03-10 | 2023-03-15 | DAILY   |
+| NISSAN    | ALTIMA   | 2023 | 2023-04-20 | 2023-04-30 | MONTHLY |
+| NISSAN    | ALTIMA   | 2023 | 2023-06-15 | 2023-06-30 | MONTHLY |
+| CHEVROLET | MALIBU   | 2022 | 2023-05-05 | 2023-05-10 | DAILY   |
+| BMW       | 3-SEIRES | 2023 | NULL       | NULL       | NULL    |
+| MERCEDES  | C-CLASS  | 2022 | NULL       | NULL       | NULL    |
++-----------+----------+------+------------+------------+---------+
+8 rows in set (0.00 sec)
+
+
+
