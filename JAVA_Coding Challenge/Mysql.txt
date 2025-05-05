@@ -1,0 +1,31 @@
+create database hospital;
+use hospital;
+
+
+create table Patient(
+    -> PatientID int PRIMARY KEY,
+    -> firstname VARCHAR(20),
+    -> lastname VARCHAR(20),
+    -> Gender VARCHAR(20),
+    -> PhoneNumber VARCHAR(20)
+    -> );
+
+
+create table Doctor(
+    -> DoctorID int PRIMARY KEY,
+    -> firstname VARCHAR(20),
+    -> lastName VARCHAR(20),
+    -> Specialization VARCHAR(20),
+    -> PhoneNumber VARCHAR(20)
+    -> );
+
+create table Appointment(
+    -> AppointmentID  int PRIMARY KEY,
+    -> PatientID int,
+    -> FOREIGN KEY(PatientID) REFERENCES Patient(PatientID),
+    -> DoctorID int,
+    -> FOREIGN KEY(DoctorID) REFERENCES Doctor(DoctorID),
+    -> Appointment_Date DATE,
+    -> Description VARCHAR(20)
+    -> );
+
